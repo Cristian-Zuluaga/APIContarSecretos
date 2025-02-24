@@ -1,8 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+
+builder.Services.AddDbContext<SecretosContext>(
+    opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("SecretosBD"))
+);
+
 
 var app = builder.Build();
 
