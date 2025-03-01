@@ -18,11 +18,26 @@ public class AutorController : ControllerBase {
         return Ok(autor);
     }
 
+    [HttpGet]
+    [Route("GetAll")]
+    public async Task<ActionResult> GetAll(){
+        var autores = await _autorService.GetAll();
+        return Ok(autores);
+    }
+
     [HttpPost]
     [Route("AddAutor")]
     public async Task<IActionResult> AddAutor(Autor autor){
         var response = await  _autorService.AddAutor(autor);
         return Ok(response);
     }
+
+    [HttpPut]
+    [Route("UpdateAutor")]
+    public async Task<IActionResult> UpdateAutor(Autor autor){
+        var response = await  _autorService.UpdateAutor(autor);
+        return Ok(response);
+    }
+    
     
 }
