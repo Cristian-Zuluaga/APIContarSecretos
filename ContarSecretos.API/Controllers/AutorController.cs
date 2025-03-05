@@ -1,3 +1,4 @@
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,13 @@ public class AutorController : ControllerBase {
     }
 
     [HttpPost]
+    [Route("GetAllFilter")]
+    public async Task<ActionResult> GetAllFilter(RequestFilterAutorDTO requestFilterAutorDTO){
+        var autores = await _autorService.GetAllFilter(requestFilterAutorDTO);
+        return Ok(autores);
+    }
+
+    [HttpPost]
     [Route("AddAutor")]
     public async Task<IActionResult> AddAutor(Autor autor){
         var response = await  _autorService.AddAutor(autor);
@@ -39,5 +47,17 @@ public class AutorController : ControllerBase {
         return Ok(response);
     }
     
+    [HttpDelete]
+    [Route("DeleteAutor")]
+    public async Task<IActionResult> DeleteAutor(int id){
+        BaseMessage<Autor> responseGet = await _autorService.FindById(id);
+        if (responseGet.StatusCode != HttpStatusCode.OK){
+            return Ok(responseGet);
+        }
+
+        Autor autor = responseGet.ResponseElements.FirstOrDefault();
+        var respuesta = await _autorService.UpdateStateAutor(autor);
+        return Ok(respuesta);
+    }
     
 }

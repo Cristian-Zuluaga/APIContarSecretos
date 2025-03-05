@@ -91,6 +91,31 @@ public class AutorService : IAutorService
         };
     }
 
+
+    public async Task<BaseMessage<Autor>> UpdateStateAutor(Autor autor)
+    {
+        try{
+
+            autor.EstaActivo = false;
+            await _unitOfWork.AutorRepository.Update(autor);
+            await _unitOfWork.SaveAsync();
+        }
+        catch(Exception ex)
+        {
+            return new BaseMessage<Autor>() {
+                Message = $"[Exception]: {ex.Message}",
+                StatusCode = System.Net.HttpStatusCode.InternalServerError,
+                ResponseElements = new ()
+            };
+        }
+        
+        
+        return new BaseMessage<Autor>() {
+            Message = "",
+            StatusCode = System.Net.HttpStatusCode.OK,
+            ResponseElements = new List<Autor>{autor}
+        };
+    }
     public async Task<BaseMessage<Autor>> FindById(int id)
     {
         try{
@@ -139,7 +164,7 @@ public class AutorService : IAutorService
         }
 
         List<string> idiomasPermitidos = new List<string> { "EN", "ES", "DE", "JP", "PT", "FR", "IT", "RU", "UK" };
-        if(idiomasPermitidos.Contains(autor.Idiomas))
+        if(!idiomasPermitidos.Contains(autor.Idiomas))
         {
             message += "El idioma no es valido";
         }
@@ -155,5 +180,24 @@ public class AutorService : IAutorService
         };
     }
 
-    
+    public async Task<BaseMessage<Autor>> GetAllFilter(RequestFilterAutorDTO requestFilterAutorDTO)
+    {
+        var lista = await _unitOfWork.AutorRepository.GetAllAsync(x => 
+                                                                    (
+                                                                        requestFilterAutorDTO.Nombre == null || 
+                                                                        (
+                                                                            //Pendiente ajuste
+                                                                            x.Nombre.ToLower().Contains(requestFilterAutorDTO.Nombre.ToLower())
+                                                                            ||  x.Apellido.ToLower().Contains(requestFilterAutorDTO.Nombre.ToLower())
+                                                                        )
+                                                                    )
+                                                                    && (requestFilterAutorDTO.Genero == null || x.Generos.ToLower().Contains(requestFilterAutorDTO.Genero.ToLower()))
+                                                                    && (requestFilterAutorDTO.Anio == null || x.FechaNacimiento.Year == requestFilterAutorDTO.Anio)
+                                                                    &&  (requestFilterAutorDTO.Nacionalidad == null || x.Nacionalidad.ToLower().Contains(requestFilterAutorDTO.Nacionalidad.ToLower()))
+                                                                    &&  (requestFilterAutorDTO.Idioma == null || x.Idiomas.ToLower().Contains(requestFilterAutorDTO.Idioma.ToLower()))
+                                                                    && (requestFilterAutorDTO.EstaVivo == null || x.EstaVivo == requestFilterAutorDTO.EstaVivo)
+                                                                );
+        return lista.Any() ?  BuildResponse(lista.ToList(), "", HttpStatusCode.OK) : 
+            BuildResponse(lista.ToList(), "", HttpStatusCode.NotFound);
+    }
 }

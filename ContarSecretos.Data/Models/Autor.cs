@@ -13,4 +13,9 @@ public class Autor : BaseEntity<int>
     public string Biografia { get; set; }
     public string Galardones { get; set; }
     public bool EstaActivo { get; set; }
+
+    public static implicit operator Autor(BaseMessage<Autor> v)
+    {
+        throw new NotImplementedException();
+    }
 }
