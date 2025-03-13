@@ -1,4 +1,8 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +19,31 @@ builder.Services.AddScoped<IAutorService,AutorService>();
 builder.Services.AddScoped<ILibroService,LibroService>();
 builder.Services.AddScoped<IAudioLibroService,AudioLibroService>();
 
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<SecretosContext>()
+    .AddDefaultTokenProviders();
 
+builder.Services.AddAuthentication(options =>{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options => {
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["JWTConfig:ValidAudience"],
+        ValidIssuer = builder.Configuration["JWTConfig:ValidIssuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTConfig:SecretKey"]))
+    };
+});
+
+
+
+//Inyeccion de contexto - conexion sql
 builder.Services.AddDbContext<SecretosContext>(
     opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("SecretosBD"))
 );
