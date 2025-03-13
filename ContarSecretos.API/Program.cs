@@ -15,6 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 //Inyecciones
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
+builder.Services.AddScoped<IUserService,UserService>();
 builder.Services.AddScoped<IAutorService,AutorService>();
 builder.Services.AddScoped<ILibroService,LibroService>();
 builder.Services.AddScoped<IAudioLibroService,AudioLibroService>();
@@ -51,6 +52,9 @@ builder.Services.AddDbContext<SecretosContext>(
 
 var app = builder.Build();
 
+//Llamado a la carga de datos de bd
+PopulateDB(app);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -62,3 +66,13 @@ app.MapControllers();
 
 app.Run();
 
+#region PopulateDB
+async void PopulateDB(WebApplication app)
+{
+    using(var scope = app.Services.CreateScope())
+    {
+        var seedMain = scope.ServiceProvider.GetRequiredService<IUserService>();
+        await seedMain.SeedAdmin();
+    }
+}
+#endregion

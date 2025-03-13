@@ -23,7 +23,6 @@ public class AutorController : ControllerBase {
 
     [HttpGet]
     [Route("GetAll")]
-    [AllowAnonymous]
     public async Task<ActionResult> GetAll(){
         var autores = await _autorService.GetAll();
         return Ok(autores);

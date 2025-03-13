@@ -36,10 +36,10 @@ public class UserService : IUserService
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
 
-            var authSignKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
+            var authSignKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTConfig:SecretKey"]));
             var token = new JwtSecurityToken(
-                issuer: _configuration["JWT:ValidIssuer"],
-                audience: _configuration["JWT:ValidAudience"],
+                issuer: _configuration["JWTConfig:ValidIssuer"],
+                audience: _configuration["JWTConfig:ValidAudience"],
                 expires: DateTime.Now.AddDays(7),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSignKey, SecurityAlgorithms.HmacSha256)
@@ -56,40 +56,45 @@ public class UserService : IUserService
 
     public async Task<bool> RegisterAdmin(RegisterModel userModel)
     {
-        var userExist = await _userManager.FindByNameAsync(userModel.UserName);
-        if(userExist != null)
-        {
+        try{
+            var userExist = await _userManager.FindByNameAsync(userModel.UserName);
+            if(userExist != null)
+            {
+                return false;
+            }
+
+            ApplicationUser user = new ApplicationUser()
+            {
+                Email = userModel.Email,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = userModel.UserName
+            };
+
+            var result = await _userManager.CreateAsync(user, userModel.Password);
+            if(!result.Succeeded)
+            {
+                return false;
+            }
+
+            if(!await _roleManager.RoleExistsAsync(UserRoles.Admin))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+            }
+            
+            if(!await _roleManager.RoleExistsAsync(UserRoles.User))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+            }
+
+            if(await _roleManager.RoleExistsAsync(UserRoles.Admin))
+            {
+                await _userManager.AddToRoleAsync(user, UserRoles.Admin);
+            }
+            return true;
+        }catch(Exception ex){
+            Console.WriteLine(ex.ToString());
             return false;
-        }
-
-        ApplicationUser user = new ApplicationUser()
-        {
-            Email = userModel.Email,
-            SecurityStamp = Guid.NewGuid().ToString(),
-            UserName = userModel.UserName
-        };
-
-        var result = await _userManager.CreateAsync(user, userModel.Password);
-        if(!result.Succeeded)
-        {
-            return false;
-        }
-
-        if(!await _roleManager.RoleExistsAsync(UserRoles.Admin))
-        {
-            await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
-        }
-        
-        if(!await _roleManager.RoleExistsAsync(UserRoles.User))
-        {
-            await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
-        }
-
-        if(await _roleManager.RoleExistsAsync(UserRoles.Admin))
-        {
-            await _userManager.AddToRoleAsync(user, UserRoles.Admin);
-        }
-        return true;
+        }      
 
     }
 
@@ -101,9 +106,9 @@ public class UserService : IUserService
     public async Task SeedAdmin()
     {
         await RegisterAdmin(new RegisterModel(){
-            Email = "luchorb@eafit.edu.co",
-            Password = "LaHeroica2025$",
-            UserName = "Lucho"
+            Email = "useradmin@gmail.com",
+            Password = "Clave123*",
+            UserName = "useradmin"
         });
     }
 }
