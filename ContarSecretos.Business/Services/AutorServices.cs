@@ -186,7 +186,7 @@ public class AutorService : IAutorService
                                                                     (
                                                                         requestFilterAutorDTO.Nombre == null || 
                                                                         (
-                                                                            //Pendiente ajuste
+                                                                            //Pendiente ajuste0
                                                                             x.Nombre.ToLower().Contains(requestFilterAutorDTO.Nombre.ToLower())
                                                                             ||  x.Apellido.ToLower().Contains(requestFilterAutorDTO.Nombre.ToLower())
                                                                         )

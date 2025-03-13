@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-public class SecretosContext : DbContext 
+public class SecretosContext : IdentityDbContext<ApplicationUser> 
 {
     public DbSet<Autor> Autores { get; set; }
     public DbSet<Libro> Libros { get; set; }

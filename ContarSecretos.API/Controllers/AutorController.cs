@@ -1,9 +1,11 @@
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class AutorController : ControllerBase {
 
     private readonly IAutorService _autorService;
