@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 public class AudioLibro : BaseEntity<int>
 {
@@ -10,6 +11,7 @@ public class AudioLibro : BaseEntity<int>
     public string Path { get; set; }
     [ForeignKey("AutorId")]
     public int AutorId { get; set; }
-    
-    public virtual Autor Autor{ get; set; }
+    [NotMapped]
+    public string Base64Document { get; set; }
+    public virtual Autor? Autor{ get; set; } = new Autor();
 }
