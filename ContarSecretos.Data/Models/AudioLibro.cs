@@ -7,11 +7,9 @@ public class AudioLibro : BaseEntity<int>
     public string Genero { get; set; }
     public int NarradorId { get; set; }
     public string Duracion { get; set; }
-    public int Tamanio { get; set; }
+    public long Tamanio { get; set; }
     public string Path { get; set; }
     [ForeignKey("AutorId")]
     public int AutorId { get; set; }
-    [NotMapped]
-    public string Base64Document { get; set; }
     public virtual Autor? Autor{ get; set; } = new Autor();
 }

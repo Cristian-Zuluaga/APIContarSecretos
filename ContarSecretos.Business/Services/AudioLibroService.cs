@@ -5,19 +5,23 @@ public class AudioLibroService : IAudioLibroService
 {
 
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IFileService _fileService;
 
-    public AudioLibroService(IUnitOfWork unitOfWork)
+    public AudioLibroService(IUnitOfWork unitOfWork, IFileService fileService)
     {
         _unitOfWork = unitOfWork;
+        _fileService = fileService;
     }
 
-    public async Task<BaseMessage<AudioLibro>> AddAudioLibro(AudioLibro audioLibro)
+    public async Task<BaseMessage<AudioLibro>> AddAudioLibro(RequestAudioLibroAddDTO audioLibro)
     {
         var isValid = ValidateModel(audioLibro);
         if(!string.IsNullOrEmpty(isValid))
         {
             return this.BuildResponse(null, isValid, HttpStatusCode.BadRequest);
         }
+
+        AudioLibro? audioLibroSave = null;
 
         try{
 
@@ -28,9 +32,24 @@ public class AudioLibroService : IAudioLibroService
                 return this.BuildResponse(null, "Autor no valido", HttpStatusCode.BadRequest);
             }
 
-            audioLibro.Autor = autor;
+            var resultFile = _fileService.SaveFileAudioLibroBase64(audioLibro.Base64File);
 
-            await _unitOfWork.AudioLibroRepository.AddAsync(audioLibro);
+            if(resultFile == null){
+                return this.BuildResponse(null, "Archvio no procesado", HttpStatusCode.BadRequest);
+            }
+
+            audioLibroSave = new(){
+                Titulo = audioLibro.Titulo,
+                AutorId = audioLibro.AutorId,
+                Autor = autor,
+                Genero = audioLibro.Genero,
+                NarradorId = audioLibro.NarradorId,
+                Duracion = audioLibro.Duracion,
+                Path = resultFile.Path,
+                Tamanio = resultFile.Size
+            };
+
+            await _unitOfWork.AudioLibroRepository.AddAsync(audioLibroSave);
             await _unitOfWork.SaveAsync();
         }
         catch(Exception ex)
@@ -46,13 +65,13 @@ public class AudioLibroService : IAudioLibroService
         return new BaseMessage<AudioLibro>() {
             Message = "",
             StatusCode = System.Net.HttpStatusCode.OK,
-            ResponseElements = new List<AudioLibro>{audioLibro}
+            ResponseElements = new List<AudioLibro>{audioLibroSave}
         };
     
     }
 
 
-    private string ValidateModel(AudioLibro audioLibro){
+    private string ValidateModel(RequestAudioLibroAddDTO audioLibro){
         string message = string.Empty;
         
         if(string.IsNullOrEmpty(audioLibro.Titulo))
@@ -129,6 +148,7 @@ public class AudioLibroService : IAudioLibroService
 
     public async Task<BaseMessage<AudioLibro>> UpdateAudioLibro(AudioLibro audioLibro)
     {
+        /*
         var isValid = ValidateModel(audioLibro);
         if(!string.IsNullOrEmpty(isValid))
         {
@@ -163,7 +183,13 @@ public class AudioLibroService : IAudioLibroService
             StatusCode = System.Net.HttpStatusCode.OK,
             ResponseElements = new List<AudioLibro>{audioLibro}
         };
-    
+        */
+
+        return new BaseMessage<AudioLibro>() {
+            Message = "",
+            StatusCode = System.Net.HttpStatusCode.OK,
+            ResponseElements = new List<AudioLibro>{audioLibro}
+        };
     }
 
     private BaseMessage<AudioLibro> BuildResponse(List<AudioLibro> lista, string message = "", HttpStatusCode status = HttpStatusCode.OK)
