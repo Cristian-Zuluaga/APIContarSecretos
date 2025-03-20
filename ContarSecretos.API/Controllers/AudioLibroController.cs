@@ -41,7 +41,7 @@ public class AudioLibroController : ControllerBase {
     */
     [HttpPost]
     [Route("AddAudioLibro")]
-    public async Task<IActionResult> AddAudioLibro(AudioLibro audioLibro){
+    public async Task<IActionResult> AddAudioLibro(RequestAudioLibroAddDTO audioLibro){
         var response = await  _audioLibroService.AddAudioLibro(audioLibro);
         return Ok(response);
     }
