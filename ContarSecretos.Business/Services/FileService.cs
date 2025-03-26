@@ -75,6 +75,37 @@ public class FileService : IFileService
     }
     public string? GetFileByName(string name)
     {
-        throw new NotImplementedException();
+        try{
+
+
+            char separator = name.Contains('/') ? '/' : '\\'; // Detecta el separador usado
+            
+            int index = name.IndexOf(separator);
+            string result = (index != -1) ? name.Substring(index + 1) : name;
+
+            string path = Path.Combine(AppContext.BaseDirectory, "Files");
+            string fileNameToFind = result;
+
+            // Crear la carpeta si no existe
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            string[] files = Directory.GetFiles(path, fileNameToFind, SearchOption.TopDirectoryOnly);
+
+            if (files.Length > 0)
+            {
+                string filePath = files[0];
+                byte[] fileBytes = File.ReadAllBytes(filePath);
+                string base64String = Convert.ToBase64String(fileBytes);
+                //TODO: AJUSTAR EXTENSION ARCHIVO
+                return base64String;
+            }
+            else
+            {
+                return null;
+            }
+        }catch(Exception ex){
+            return null;
+        }
     }
 }

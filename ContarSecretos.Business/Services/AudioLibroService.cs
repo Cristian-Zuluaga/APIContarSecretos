@@ -128,17 +128,32 @@ public class AudioLibroService : IAudioLibroService
         }   
     }
 
-    public async Task<BaseMessage<AudioLibro>> GetAll()
+    public async Task<BaseMessage<ResponseAudioLibroDTO>> GetAll()
     {
         try 
         {
             IEnumerable<AudioLibro> audioLibros= await _unitOfWork.AudioLibroRepository.GetAllAsync();
 
-            return audioLibros.Any() ?  BuildResponse(audioLibros.ToList(), "", HttpStatusCode.OK) : 
-            BuildResponse(audioLibros.ToList(), "", HttpStatusCode.NotFound);
+            List<ResponseAudioLibroDTO> listRespuesta = new();
+
+            foreach(var audio in audioLibros){
+                listRespuesta.Add(new(){
+                    Titulo = audio.Titulo,
+                    Genero = audio.Genero,
+                    NarradorId = audio.NarradorId,
+                    Duracion = audio.Duracion,
+                    Tamanio = audio.Tamanio,
+                    Path = audio.Path,
+                    AutorId = audio.AutorId,
+                    Base64 = _fileService.GetFileByName(audio.Path)
+                });
+            }
+
+            return listRespuesta.Any() ?  BuildResponseAudioLibroDTO(listRespuesta.ToList(), "", HttpStatusCode.OK) : 
+            BuildResponseAudioLibroDTO(listRespuesta.ToList(), "", HttpStatusCode.NotFound);
         }
         catch (Exception ex){
-            return new BaseMessage<AudioLibro>() {
+            return new BaseMessage<ResponseAudioLibroDTO>() {
                 Message = $"[Exception]: {ex.Message}",
                 StatusCode = System.Net.HttpStatusCode.InternalServerError,
                 ResponseElements = new ()
@@ -201,4 +216,24 @@ public class AudioLibroService : IAudioLibroService
         };
     }
 
+    private BaseMessage<ResponseAudioLibroDTO> BuildResponseAudioLibroDTO(List<ResponseAudioLibroDTO> lista, string message = "", HttpStatusCode status = HttpStatusCode.OK)
+    {
+        return new BaseMessage<ResponseAudioLibroDTO>(){
+            Message = message,
+            StatusCode = status,
+            ResponseElements = lista
+        };
+    }
+
+    public async Task<BaseMessage<AudioLibro>> GetAllFilter(RequestFilterAudioLibroDTO requestFilterAudioLibroDTO)
+    {
+        var lista = await _unitOfWork.AudioLibroRepository.GetAllAsync(x => 
+                                                                    (requestFilterAudioLibroDTO.Titulo == null || x.Titulo.ToLower().Contains(requestFilterAudioLibroDTO.Titulo.ToLower()))
+                                                                    &&  (requestFilterAudioLibroDTO.Genero == null || x.Genero.ToLower().Contains(requestFilterAudioLibroDTO.Genero.ToLower()))
+                                                                    && (requestFilterAudioLibroDTO.NarradorId == null || x.NarradorId == requestFilterAudioLibroDTO.NarradorId)
+                                                                    && (requestFilterAudioLibroDTO.AutorId == null || x.AutorId == requestFilterAudioLibroDTO.AutorId)
+                                                                );
+        return lista.Any() ?  BuildResponse(lista.ToList(), "", HttpStatusCode.OK) : 
+            BuildResponse(lista.ToList(), "", HttpStatusCode.NotFound);
+    }
 }

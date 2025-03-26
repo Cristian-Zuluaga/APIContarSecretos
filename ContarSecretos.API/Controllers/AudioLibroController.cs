@@ -29,16 +29,14 @@ public class AudioLibroController : ControllerBase {
         var audioLibros = await _audioLibroService.GetAll();
         return Ok(audioLibros);
     }
-
-    /*
+   
     [HttpPost]
     [Route("GetAllFilter")]
-    public async Task<ActionResult> GetAllFilter(RequestFilterAutorDTO requestFilterAutorDTO){
-        var autores = await _autorService.GetAllFilter(requestFilterAutorDTO);
-        return Ok(autores);
+    public async Task<ActionResult> GetAllFilter(RequestFilterAudioLibroDTO requestFilterAudioLibroDTO){
+        var audioLibros = await _audioLibroService.GetAllFilter(requestFilterAudioLibroDTO);
+        return Ok(audioLibros);
     }
 
-    */
     [HttpPost]
     [Route("AddAudioLibro")]
     public async Task<IActionResult> AddAudioLibro(RequestAudioLibroAddDTO audioLibro){
