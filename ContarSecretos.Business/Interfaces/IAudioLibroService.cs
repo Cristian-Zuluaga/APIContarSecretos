@@ -1,7 +1,8 @@
 public interface IAudioLibroService{
-    Task<BaseMessage<AudioLibro>> FindById(int id);
-    Task<BaseMessage<AudioLibro>> AddAudioLibro(RequestAudioLibroAddDTO audioLibro);
+    Task<BaseMessage<ResponseAudioLibroDTO>> FindById(int id);
+    Task<BaseMessage<AudioLibro>> AddAudioLibro(RequestAudioLibroDTO audioLibro);
     Task<BaseMessage<ResponseAudioLibroDTO>> GetAll();
-    Task<BaseMessage<AudioLibro>> UpdateAudioLibro(AudioLibro audioLibro);
-    Task<BaseMessage<AudioLibro>> GetAllFilter(RequestFilterAudioLibroDTO requestFilterAudioLibroDTO);
+    Task<BaseMessage<AudioLibro>> UpdateAudioLibro(RequestAudioLibroDTO audioLibro);
+    Task<BaseMessage<ResponseAudioLibroDTO>> GetAllFilter(RequestFilterAudioLibroDTO requestFilterAudioLibroDTO);
+    Task<bool> DeleteAudioLibro(int id);
 }

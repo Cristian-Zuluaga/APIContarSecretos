@@ -40,7 +40,7 @@ public class UserService : IUserService
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWTConfig:ValidIssuer"],
                 audience: _configuration["JWTConfig:ValidAudience"],
-                expires: DateTime.Now.AddDays(7),
+                expires: DateTime.Now.AddHours(3),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSignKey, SecurityAlgorithms.HmacSha256)
             );

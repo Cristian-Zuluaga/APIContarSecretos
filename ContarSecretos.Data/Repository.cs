@@ -39,6 +39,12 @@ where TEntity : BaseEntity<TId>
         return await _dbSet.FindAsync(id);
     }
 
+    public virtual async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate, bool asTracking = false)
+    {
+         return asTracking ? await _dbSet.AsTracking().FirstOrDefaultAsync(predicate)
+                 : await _dbSet.AsNoTracking().FirstOrDefaultAsync(predicate);
+    }
+
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync(
         Expression<Func<TEntity, bool>> filter = null, 
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null, 

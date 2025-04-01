@@ -44,6 +44,30 @@ public class FileService : IFileService
             return null;
         }
     }
+
+    string GetMimeType(string filePath)
+    {
+        var mimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { ".txt", "text/plain" },
+            { ".pdf", "application/pdf" },
+            { ".jpg", "image/jpeg" },
+            { ".jpeg", "image/jpeg" },
+            { ".png", "image/png" },
+            { ".gif", "image/gif" },
+            { ".mp3", "audio/mpeg" },
+            { ".mp4", "video/mp4" },
+            { ".json", "application/json" },
+            { ".html", "text/html" },
+            { ".csv", "text/csv" },
+            { ".xml", "application/xml" },
+            { ".zip", "application/zip" }
+        };
+
+        string extension = Path.GetExtension(filePath);
+        return mimeTypes.ContainsKey(extension) ? mimeTypes[extension] : "application/octet-stream";
+    }
+
     private static bool IsAudioBase64(string base64, out string extension, out string pureBase64)
     {
         var match = Regex.Match(base64, @"^data:(?<type>audio/[^;]+);base64,(?<data>.+)$");
@@ -97,8 +121,13 @@ public class FileService : IFileService
                 string filePath = files[0];
                 byte[] fileBytes = File.ReadAllBytes(filePath);
                 string base64String = Convert.ToBase64String(fileBytes);
-                //TODO: AJUSTAR EXTENSION ARCHIVO
-                return base64String;
+                
+                 // Obtener la extensión y el MIME type
+                string extension = Path.GetExtension(filePath);
+                string mimeType = this.GetMimeType(filePath);
+
+                // Retornar el formato correcto
+                return $"data:{mimeType};base64,{base64String}";
             }
             else
             {
@@ -107,5 +136,39 @@ public class FileService : IFileService
         }catch(Exception ex){
             return null;
         }
+    }
+
+    public bool DeleteFile(string name)
+    {
+        try{
+
+
+            char separator = name.Contains('/') ? '/' : '\\'; // Detecta el separador usado
+            
+            int index = name.IndexOf(separator);
+            string result = (index != -1) ? name.Substring(index + 1) : name;
+
+            string path = Path.Combine(AppContext.BaseDirectory, "Files");
+            string fileNameToFind = result;
+
+            // Crear la carpeta si no existe
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            string[] files = Directory.GetFiles(path, fileNameToFind, SearchOption.TopDirectoryOnly);
+
+            if (files.Length > 0)
+            {
+                string filePath = files[0]; // Tomar el primer archivo encontrado
+                File.Delete(filePath); // Eliminar el archivo
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }catch(Exception ex){
+            return false;
+        } 
     }
 }

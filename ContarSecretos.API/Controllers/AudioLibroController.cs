@@ -39,30 +39,26 @@ public class AudioLibroController : ControllerBase {
 
     [HttpPost]
     [Route("AddAudioLibro")]
-    public async Task<IActionResult> AddAudioLibro(RequestAudioLibroAddDTO audioLibro){
+    public async Task<IActionResult> AddAudioLibro(RequestAudioLibroDTO audioLibro){
         var response = await  _audioLibroService.AddAudioLibro(audioLibro);
         return Ok(response);
     }
     
     [HttpPut]
     [Route("UpdateAudioLibro")]
-    public async Task<IActionResult> UpdateAudioLibro(AudioLibro audioLibro){
+    public async Task<IActionResult> UpdateAudioLibro(RequestAudioLibroDTO audioLibro){
         var response = await  _audioLibroService.UpdateAudioLibro(audioLibro);
         return Ok(response);
     }
-    /*
-    
+
     [HttpDelete]
-    [Route("DeleteAutor")]
-    public async Task<IActionResult> DeleteAutor(int id){
-        BaseMessage<Autor> responseGet = await _autorService.FindById(id);
+    [Route("DeleteAudioLibro")]
+    public async Task<IActionResult> DeleteAudioLibro(int id){
+        BaseMessage<ResponseAudioLibroDTO> responseGet = await _audioLibroService.FindById(id);
         if (responseGet.StatusCode != HttpStatusCode.OK){
             return Ok(responseGet);
         }
-
-        Autor autor = responseGet.ResponseElements.FirstOrDefault();
-        var respuesta = await _autorService.UpdateStateAutor(autor);
+        var respuesta = await _audioLibroService.DeleteAudioLibro(id);
         return Ok(respuesta);
     }
-    */
 }
