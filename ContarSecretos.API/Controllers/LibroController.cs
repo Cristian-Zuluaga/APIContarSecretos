@@ -81,8 +81,8 @@ public class LibroController : ControllerBase
     [Route("DesactivarLibro")]
     public async Task<IActionResult> DesactivarLibro(int id)
     {
-    var response = await _libroService.DesactivarLibro(id);
-    return Ok(response);
+    var libros = await _libroService.DesactivarLibro(id);
+    return Ok(libros);
     }
      
      //desactivar libro **end**
@@ -92,8 +92,8 @@ public class LibroController : ControllerBase
     [Route("ActivarLibro")]
     public async Task<IActionResult> ActivarLibro(int id)
     {
-    var response = await _libroService.ActivarLibro(id);
-    return Ok(response);
+    var libros = await _libroService.ActivarLibro(id);
+    return Ok(libros);
     }
 
     //activar libro  ***end**
