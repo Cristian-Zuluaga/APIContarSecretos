@@ -6,6 +6,8 @@ public class UnitOfWork : IUnitOfWork
     private IRepository<int, Autor> _autorRepository;
     private IRepository<int, Libro> _libroRepository;
     private IRepository<int, AudioLibro> _audioLibroRepository;
+    private IRepository<int, Estadistica> _estadisticaRepository;
+
     private bool _disposed = false;
 
     public UnitOfWork(SecretosContext context)
@@ -41,6 +43,15 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public IRepository<int, Estadistica> EstadisticaRepository
+    {
+        get
+        {
+            _estadisticaRepository ??= new Repository<int, Estadistica>(_context);
+            return _estadisticaRepository;
+        }
+    }
+    
     public async Task SaveAsync()
     {
         try

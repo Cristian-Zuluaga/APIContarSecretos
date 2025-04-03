@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class EstadisticaAudioLibro : BaseEntity<int> 
+public class Estadistica : BaseEntity<int> 
 {
     [ForeignKey("AudioLibroId")]
-    public int AudioLibroId { get; set; }
+    public int? AudioLibroId { get; set; }
     [ForeignKey("LibroId")]
-    public int LibroId { get; set; }
+    public int? LibroId { get; set; }
     public int CountDescargas { get; set; }
     public int CountEscuchado { get; set; }
     public int CountLeido { get; set; }

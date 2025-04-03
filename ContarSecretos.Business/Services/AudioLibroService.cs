@@ -7,10 +7,13 @@ public class AudioLibroService : IAudioLibroService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IFileService _fileService;
 
-    public AudioLibroService(IUnitOfWork unitOfWork, IFileService fileService)
+    private readonly IEstadisticaService _estadisticaService;   
+
+    public AudioLibroService(IUnitOfWork unitOfWork, IFileService fileService,IEstadisticaService estadisticaService)
     {
         _unitOfWork = unitOfWork;
         _fileService = fileService;
+        _estadisticaService = estadisticaService;
     }
 
     public async Task<BaseMessage<AudioLibro>> AddAudioLibro(RequestAudioLibroDTO audioLibro)
@@ -51,6 +54,10 @@ public class AudioLibroService : IAudioLibroService
 
             await _unitOfWork.AudioLibroRepository.AddAsync(audioLibroSave);
             await _unitOfWork.SaveAsync();
+
+            //Crea el registro de estadistica
+            await SaveEstadisticaAsync(audioLibroSave.Id);
+
         }
         catch(Exception ex)
         {
@@ -70,7 +77,30 @@ public class AudioLibroService : IAudioLibroService
     
     }
 
+    private async Task SaveEstadisticaAsync(int idAudioLibro){
+        try{
+            Estadistica estadistica = new (){
+                AudioLibroId = idAudioLibro,
+                LibroId = null,
+                Libro = null,
+                CountLeido = 0,
+                CountDescargas = 0,
+                CountEscuchado = 0
+            };
 
+            await _estadisticaService.AddEstadistica(estadistica);
+        }catch(Exception){
+            throw;
+        }
+    }
+
+    private async Task DeleteEstadisticaAsync(int idAudioLibro){
+        try{
+            await _estadisticaService.DeleteEstadistica(idAudioLibro,null);
+        }catch(Exception){
+            throw;
+        }
+    }
     private string ValidateModel(RequestAudioLibroDTO audioLibro){
         string message = string.Empty;
         
@@ -290,8 +320,12 @@ public class AudioLibroService : IAudioLibroService
     {
         try{
 
+            //Elimina estadistica
+            await DeleteEstadisticaAsync(id);
+            
             await _unitOfWork.AudioLibroRepository.Delete(id);
-            await _unitOfWork.SaveAsync();
+            await _unitOfWork.SaveAsync();  
+
             return true;
         }
         catch(Exception)

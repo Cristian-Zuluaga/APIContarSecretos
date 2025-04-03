@@ -148,10 +148,12 @@ using Microsoft.EntityFrameworkCore;
 public class LibroService : ILibroService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEstadisticaService _estadisticaService;
 
-    public LibroService(IUnitOfWork unitOfWork)
+    public LibroService(IUnitOfWork unitOfWork,IEstadisticaService estadisticaService)
     {
         _unitOfWork = unitOfWork;
+        _estadisticaService = estadisticaService;
     }
 
     public async Task<BaseMessage<Libro>> GetAll()
@@ -185,6 +187,8 @@ public class LibroService : ILibroService
         {
             await _unitOfWork.LibroRepository.AddAsync(libro);
             await _unitOfWork.SaveAsync();
+
+            await SaveEstadisticaAsync(libro.Id);
         }
         catch (Exception ex)
         {
@@ -308,4 +312,30 @@ public class LibroService : ILibroService
             ResponseElements = lista
         };
     }
+
+        private async Task SaveEstadisticaAsync(int idLibro){
+        try{
+            Estadistica estadistica = new (){
+                AudioLibroId = null,
+                AudioLibro = null,
+                LibroId = idLibro,
+                CountLeido = 0,
+                CountDescargas = 0,
+                CountEscuchado = 0
+            };
+
+            await _estadisticaService.AddEstadistica(estadistica);
+        }catch(Exception){
+            throw;
+        }
+    }
+
+    private async Task DeleteEstadisticaAsync(int idLibro){
+        try{
+            await _estadisticaService.DeleteEstadistica(null,idLibro);
+        }catch(Exception){
+            throw;
+        }
+    }
+
 }
