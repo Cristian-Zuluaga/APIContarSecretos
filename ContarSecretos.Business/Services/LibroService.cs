@@ -157,8 +157,8 @@ public class LibroService : ILibroService
     public async Task<BaseMessage<Libro>> GetAll()
     {
         try
-        {
-            IEnumerable<Libro> libros = await _unitOfWork.LibroRepository.GetAllAsync();
+        {                                                                               // se añade activo para habilitar o inabi libros
+            IEnumerable<Libro> libros = await _unitOfWork.LibroRepository.GetAllAsync(l => l.Activo);
             return libros.Any() ? BuildResponse(libros.ToList(), "", HttpStatusCode.OK) :
                                   BuildResponse(libros.ToList(), "", HttpStatusCode.NotFound);
         }
@@ -243,13 +243,150 @@ public class LibroService : ILibroService
             };
         }
     }
+        ////download libro **begin**
+
+    public async Task<BaseMessage<byte[]>> DownloadLibro(int id)
+{
+    try
+    {
+        var libro = await _unitOfWork.LibroRepository.FindAsync(id);
+
+        if (libro == null)
+        {
+            return new BaseMessage<byte[]>
+            {
+                Message = "Libro no encontrado.",
+                StatusCode = HttpStatusCode.NotFound,
+                ResponseElements = new List<byte[]>()
+            };
+        }
+            
+    // nombre buscando el  campo en la base de datos para almacenar el nombre del archivo PDF
+    //string rutaArchivo = Path.Combine("Libros", libros.NombreArchivoPDF); 
+
+        //   nombre con el ID del libro
+        string rutaArchivo = Path.Combine("Libros", $"Libro_{id}.pdf");
+
+        if (!File.Exists(rutaArchivo))
+        {
+            return new BaseMessage<byte[]>
+            {
+                Message = "El archivo no existe.",
+                StatusCode = HttpStatusCode.NotFound,
+                ResponseElements = new List<byte[]>()
+            };
+        }
+
+        byte[] archivoBytes = await File.ReadAllBytesAsync(rutaArchivo);
+
+        return new BaseMessage<byte[]>
+        {
+            StatusCode = HttpStatusCode.OK,
+            ResponseElements = new List<byte[]> { archivoBytes }
+        };
+    }
+    catch (Exception ex)
+    {
+        return new BaseMessage<byte[]>
+        {
+            Message = $"[Exception]: {ex.Message}",
+            StatusCode = HttpStatusCode.InternalServerError,
+            ResponseElements = new List<byte[]>()
+        };
+    }
+}
+
+
+////download libro **end**
+
+//desactivar libri ***begin***
+
+    public async Task<BaseMessage<Libro>> DesactivarLibro(int id)
+{
+    try
+    {
+        var libro = await _unitOfWork.LibroRepository.FindAsync(id);
+        
+        if (libro == null)
+        {
+            return new BaseMessage<Libro>
+            {
+                Message = "Libro no encontrado.",
+                StatusCode = HttpStatusCode.NotFound,
+                ResponseElements = new List<Libro>()
+            };
+        }
+
+        libro.Activo = false;  // libro inactivo
+        await _unitOfWork.LibroRepository.Update(libro);
+        await _unitOfWork.SaveAsync();
+
+        return new BaseMessage<Libro>
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Libro desactivado correctamente.",
+            ResponseElements = new List<Libro> { libro }
+        };
+    }
+    catch (Exception ex)
+    {
+        return new BaseMessage<Libro>
+        {
+            Message = $"[Exception]: {ex.Message}",
+            StatusCode = HttpStatusCode.InternalServerError,
+            ResponseElements = new List<Libro>()
+        };
+    }
+}
+/// desactivar libro **end**
+
+/// activar libro **begin**
+
+public async Task<BaseMessage<Libro>> ActivarLibro(int id)
+{
+    try
+    {
+        var libro = await _unitOfWork.LibroRepository.FindAsync(id);
+        
+        if (libro == null)
+        {
+            return new BaseMessage<Libro>
+            {
+                Message = "Libro no encontrado.",
+                StatusCode = HttpStatusCode.NotFound,
+                ResponseElements = new List<Libro>()
+            };
+        }
+
+        libro.Activo = true;  // Reactivar libro
+        await _unitOfWork.LibroRepository.Update(libro);
+        await _unitOfWork.SaveAsync();
+
+        return new BaseMessage<Libro>
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Libro activado correctamente.",
+            ResponseElements = new List<Libro> { libro }
+        };
+    }
+    catch (Exception ex)
+    {
+        return new BaseMessage<Libro>
+        {
+            Message = $"[Exception]: {ex.Message}",
+            StatusCode = HttpStatusCode.InternalServerError,
+            ResponseElements = new List<Libro>()
+        };
+    }
+}
+/// activar libro **end**
 
     public async Task<BaseMessage<Libro>> GetAllFilter(RequestFilterLibroDTO requestFilterLibroDTO)
     {
         try
         {
             var libros = await _unitOfWork.LibroRepository.GetAllAsync(
-                l => (string.IsNullOrEmpty(requestFilterLibroDTO.Nombre) || l.Titulo.Contains(requestFilterLibroDTO.Nombre)) &&
+                l => l.Activo && (string.IsNullOrEmpty(requestFilterLibroDTO.Nombre) || l.Titulo.Contains(requestFilterLibroDTO.Nombre)) &&
                      (requestFilterLibroDTO.AutorId == 0 || l.AutorId == requestFilterLibroDTO.AutorId) &&
                      (string.IsNullOrEmpty(requestFilterLibroDTO.Genero) || l.Genero == requestFilterLibroDTO.Genero) &&
                      (string.IsNullOrEmpty(requestFilterLibroDTO.Idioma) || l.Idioma == requestFilterLibroDTO.Idioma) &&

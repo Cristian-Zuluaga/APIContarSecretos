@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -55,6 +56,46 @@ public class LibroController : ControllerBase
         return Ok(libros);
     }
 
-    
+    //download libro controller ***begin**
+    [HttpGet]
+    [Route("Download")]
+    public async Task<IActionResult> DownloadLibro(int id)
+    {
+    var libros = await _libroService.DownloadLibro(id);
+
+    if (libros.StatusCode != HttpStatusCode.OK)
+    {
+        return StatusCode((int)libros.StatusCode, libros.Message);
+    }
+
+    return File(libros.ResponseElements.First(), "application/pdf", $"Libro_{id}.pdf");
+    }
+
+
+     //download libro controller ***end**
+
+
+     //desactivar libro **begin**
+     
+    [HttpPut]
+    [Route("DesactivarLibro")]
+    public async Task<IActionResult> DesactivarLibro(int id)
+    {
+    var response = await _libroService.DesactivarLibro(id);
+    return Ok(response);
+    }
+     
+     //desactivar libro **end**
+
+    //activar libro **begin**
+     [HttpPut]
+    [Route("ActivarLibro")]
+    public async Task<IActionResult> ActivarLibro(int id)
+    {
+    var response = await _libroService.ActivarLibro(id);
+    return Ok(response);
+    }
+
+    //activar libro  ***end**
 
 }

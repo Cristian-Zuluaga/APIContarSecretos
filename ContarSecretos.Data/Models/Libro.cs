@@ -11,6 +11,7 @@ public class Libro : BaseEntity<int>
     public string Idioma { get; set; }
     public string Portada { get; set; }
     public string Edicion { get; set; }
+    public bool Activo { get; set; } = true;  // se añade el campo  para inactivar libro
     public string ContraPortada { get; set; }
     [ForeignKey("AutorId")]
     public int AutorId { get; set; }
