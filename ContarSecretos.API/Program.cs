@@ -20,6 +20,7 @@ builder.Services.AddScoped<IUserService,UserService>();
 builder.Services.AddScoped<IAutorService,AutorService>();
 builder.Services.AddScoped<ILibroService,LibroService>();
 builder.Services.AddScoped<IAudioLibroService,AudioLibroService>();
+builder.Services.AddScoped<IEstadisticaService,EstadisticaService>();
 builder.Services.AddScoped<IFileService,FileService>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()

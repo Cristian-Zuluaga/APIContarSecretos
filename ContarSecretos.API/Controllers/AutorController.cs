@@ -50,7 +50,7 @@ public class AutorController : ControllerBase {
     }
     
     [HttpDelete]
-    [Route("DeleteAutor")]
+    [Route("InactivarAutor")]
     public async Task<IActionResult> DeleteAutor(int id){
         BaseMessage<Autor> responseGet = await _autorService.FindById(id);
         if (responseGet.StatusCode != HttpStatusCode.OK){

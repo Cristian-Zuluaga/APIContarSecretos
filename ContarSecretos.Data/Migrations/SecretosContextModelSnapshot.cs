@@ -111,8 +111,8 @@ namespace ContarSecretos.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Tamanio")
-                        .HasColumnType("integer");
+                    b.Property<long>("Tamanio")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
@@ -184,6 +184,38 @@ namespace ContarSecretos.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Autor", (string)null);
+                });
+
+            modelBuilder.Entity("Estadistica", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AudioLibroId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CountDescargas")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CountEscuchado")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CountLeido")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LibroId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AudioLibroId");
+
+                    b.HasIndex("LibroId");
+
+                    b.ToTable("Estadistica", (string)null);
                 });
 
             modelBuilder.Entity("Libro", b =>
@@ -384,6 +416,21 @@ namespace ContarSecretos.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Autor");
+                });
+
+            modelBuilder.Entity("Estadistica", b =>
+                {
+                    b.HasOne("AudioLibro", "AudioLibro")
+                        .WithMany()
+                        .HasForeignKey("AudioLibroId");
+
+                    b.HasOne("Libro", "Libro")
+                        .WithMany()
+                        .HasForeignKey("LibroId");
+
+                    b.Navigation("AudioLibro");
+
+                    b.Navigation("Libro");
                 });
 
             modelBuilder.Entity("Libro", b =>
