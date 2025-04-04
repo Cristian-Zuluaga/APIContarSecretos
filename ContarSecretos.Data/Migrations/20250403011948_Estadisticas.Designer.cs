@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ContarSecretos.Data.Migrations
 {
     [DbContext(typeof(SecretosContext))]
-    partial class SecretosContextModelSnapshot : ModelSnapshot
+    [Migration("20250403011948_Estadisticas")]
+    partial class Estadisticas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,9 +229,6 @@ namespace ContarSecretos.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool?>("Activo")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("AnioPublicacion")
                         .HasColumnType("integer");
 
@@ -260,10 +260,6 @@ namespace ContarSecretos.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Idioma")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Path")
                         .IsRequired()
                         .HasColumnType("text");
 

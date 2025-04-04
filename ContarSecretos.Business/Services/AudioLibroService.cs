@@ -215,7 +215,7 @@ public class AudioLibroService : IAudioLibroService
                 return this.BuildResponse(null, "Autor no valido", HttpStatusCode.BadRequest);
             }
 
-            var resultFile = _fileService.SaveFileAudioLibroBase64(audioLibro.Base64File);
+            var resultFile = _fileService.SaveFileLibroBase64(audioLibro.Base64File);
 
             if(resultFile == null){
                 return this.BuildResponse(null, "Archvio no procesado", HttpStatusCode.BadRequest);

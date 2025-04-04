@@ -9,6 +9,7 @@ Proyecto desarrollado bajo arquitectura NCapas, la cual se desarrolla en tres ca
 
 # Tecnologias
 * .NET Core 9
+* Entity Framework Core 9
 * Postgree SQL
 * JWT
 

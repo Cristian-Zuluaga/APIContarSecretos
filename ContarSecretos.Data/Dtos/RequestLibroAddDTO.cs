@@ -1,7 +1,5 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
-public class Libro : BaseEntity<int>
-{
+public class RequestLibroAddDTO{
+    public int Id {get;set;}
     public string Titulo { get; set; }
     public string ISBN13 { get; set; }
     public string Editorial { get; set; }
@@ -11,10 +9,8 @@ public class Libro : BaseEntity<int>
     public string Idioma { get; set; }
     public string Portada { get; set; }
     public string Edicion { get; set; }
-    public bool? Activo { get; set; } = true;  // se añade el campo  para inactivar libro
+    public bool Activo { get; set; } = true;  // se añade el campo  para inactivar libro
     public string ContraPortada { get; set; }
-    public string Path {get;set;}
-    [ForeignKey("AutorId")]
     public int AutorId { get; set; }
-    public virtual Autor Autor{ get; set; }
+    public string Base64File { get; set; }
 }

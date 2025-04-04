@@ -93,9 +93,71 @@ public class FileService : IFileService
         extension = "bin";
         return false;
     }
+    
+    private static bool IsDocumentBase64(string base64, out string extension, out string pureBase64)
+    {
+        var match = Regex.Match(base64, @"^data:(?<type>application/pdf);base64,(?<data>.+)$");
+        if (match.Success)
+        {
+            string mimeType = match.Groups["type"].Value;
+            pureBase64 = match.Groups["data"].Value;
+
+            extension = mimeType switch
+            {
+               "application/pdf" => "pdf",
+                _ => "desconocido"
+            };
+
+            return extension != "desconocido";
+        }
+
+        pureBase64 = base64; // Si no tiene prefijo, se asume binario
+        extension = "bin";
+        return false;
+    }
+    
     public FileDTO? SaveFileLibroBase64(string base64)
     {
-        throw new NotImplementedException();
+         try{
+
+            if (IsDocumentBase64(base64, out string extension, out string pureBase64))
+            {
+                // Convertir Base64 a bytes
+                byte[] fileBytes = Convert.FromBase64String(pureBase64);
+
+                string saveDirectory = Path.Combine(AppContext.BaseDirectory, "Files");
+
+                // Crear la carpeta si no existe
+                if (!Directory.Exists(saveDirectory))
+                    Directory.CreateDirectory(saveDirectory);
+
+                // Generar un nombre de archivo único
+                string fileName = $"Libro_{DateTime.Now:yyyyMMdd_HHmmss}.{extension}";
+                string filePath = Path.Combine(saveDirectory, fileName);
+
+                string pathBd = Path.Combine("Files", fileName);
+
+                // Guardar el archivo
+                File.WriteAllBytes(filePath, fileBytes);
+
+                long fileSize = new FileInfo(filePath).Length;
+
+                return new(){
+                    Name = fileName,
+                    Extension = extension,
+                    Path = pathBd,
+                    Size = fileSize
+                };
+            }
+            else
+            {
+                return null;
+            }  
+
+        }catch(Exception ex){
+            return null;
+        }
+    
     }
     public string? GetFileByName(string name)
     {

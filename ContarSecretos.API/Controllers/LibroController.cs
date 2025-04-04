@@ -42,7 +42,7 @@ public class LibroController : ControllerBase
 
     [HttpPost]
     [Route("AddLibro")]
-    public async Task<IActionResult> AddLibro(Libro libro)
+    public async Task<IActionResult> AddLibro(RequestLibroAddDTO libro)
     {   // var response puede ir en vez de var libros
         var libros = await _libroService.AddLibro(libro);
         return Ok(libros);
@@ -50,8 +50,8 @@ public class LibroController : ControllerBase
 
     [HttpPut]
     [Route("UpdateLibro")]
-    public async Task<IActionResult> UpdateLibro(Libro libro)
-    {   // var response puede ir en vez de var libros
+    public async Task<IActionResult> UpdateLibro(RequestLibroAddDTO libro)
+    {   
         var libros = await _libroService.UpdateLibro(libro);
         return Ok(libros);
     }

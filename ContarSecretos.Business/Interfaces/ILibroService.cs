@@ -21,8 +21,8 @@
 public interface ILibroService
 {
     Task<BaseMessage<Libro>> GetAll();
-    Task<BaseMessage<Libro>> AddLibro(Libro libro);
-    Task<BaseMessage<Libro>> UpdateLibro(Libro libro);
+    Task<BaseMessage<Libro>> AddLibro(RequestLibroAddDTO libro);
+    Task<BaseMessage<Libro>> UpdateLibro(RequestLibroAddDTO libro);
     Task<BaseMessage<Libro>> FindById(int id);
     Task<BaseMessage<Libro>> GetAllFilter(RequestFilterLibroDTO requestFilterLibroDTO);
     //se añaden estas 3 interfaces
