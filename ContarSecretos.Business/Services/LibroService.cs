@@ -380,6 +380,44 @@ public async Task<BaseMessage<Libro>> ActivarLibro(int id)
     }
 }
 /// activar libro **end**
+///eliminar libro
+public async Task<BaseMessage<Libro>> EliminarLibro(int id)
+{
+    try
+    {
+        var libro = await _unitOfWork.LibroRepository.FindAsync(id);
+
+        if (libro == null)
+        {
+            return new BaseMessage<Libro>
+            {
+                Message = "Libro no encontrado.",
+                StatusCode = HttpStatusCode.NotFound,
+                ResponseElements = new()
+            };
+        }
+
+        await _unitOfWork.LibroRepository.Delete(libro);
+        await _unitOfWork.SaveAsync();
+
+        return new BaseMessage<Libro>
+        {
+            Message = "Libro eliminado exitosamente.",
+            StatusCode = HttpStatusCode.OK,
+            ResponseElements = new() 
+        };
+    }
+    catch (Exception ex)
+    {
+        return new BaseMessage<Libro>
+        {
+            Message = $"[Exception]: {ex.Message}",
+            StatusCode = HttpStatusCode.InternalServerError,
+            ResponseElements = new()
+        };
+    }
+}
+//eliminar libro end
 
     public async Task<BaseMessage<Libro>> GetAllFilter(RequestFilterLibroDTO requestFilterLibroDTO)
     {

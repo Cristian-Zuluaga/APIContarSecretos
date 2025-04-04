@@ -97,5 +97,17 @@ public class LibroController : ControllerBase
     }
 
     //activar libro  ***end**
+    //eliminar libro
+    [HttpDelete("eliminar/{id}")]
+    public async Task<IActionResult> EliminarLibro(int id)
+    {
+    var resultado = await _libroService.EliminarLibro(id);
+
+    if (resultado.StatusCode != HttpStatusCode.OK)
+        return StatusCode((int)resultado.StatusCode, resultado);
+
+    return Ok(resultado);
+    }
+
 
 }
