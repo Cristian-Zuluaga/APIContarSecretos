@@ -1,144 +1,3 @@
-//using System.Net;
-//using System.Text.RegularExpressions;
-
-//public class LibroService : ILibroService
-//{
-//    private readonly IUnitOfWork _unitOfWork;
-
-//    public LibroService(IUnitOfWork unitOfWork)
-//    {
-//        _unitOfWork = unitOfWork;
-//    }
-
-//    public async Task<BaseMessage<Libro>> GetAll()
-//    {
-//        try
-//        {
-//            IEnumerable<Libro> libros = await _unitOfWork.LibroRepository.GetAllAsync();
-//            return libros.Any() ? BuildResponse(libros.ToList(), "", HttpStatusCode.OK) :
-//                                  BuildResponse(libros.ToList(), "", HttpStatusCode.NotFound);
-//        }
-//        catch (Exception ex)
-//        {
-//            return new BaseMessage<Libro>()
-//            {
-//                Message = $"[Exception]: {ex.Message}",
-//                StatusCode = HttpStatusCode.InternalServerError,
-//                ResponseElements = new()
-//            };
-//        }
-//    }
-
-//    public async Task<BaseMessage<Libro>> AddLibro(Libro libro)
-//    {
-//        var isValid = ValidateModel(libro);
-//        if (!string.IsNullOrEmpty(isValid))
-//        {
-//            return BuildResponse(null, isValid, HttpStatusCode.BadRequest);
-//        }
-
-//        try
-//        {
-//            await _unitOfWork.LibroRepository.AddAsync(libro);
-//            await _unitOfWork.SaveAsync();
-//        }
-//        catch (Exception ex)
-//        {
-//            return new BaseMessage<Libro>()
-//            {
-//                Message = $"[Exception]: {ex.Message}",
-//                StatusCode = HttpStatusCode.InternalServerError,
-//                ResponseElements = new()
-//            };
-//        }
-
-//        return BuildResponse(new List<Libro> { libro }, "", HttpStatusCode.OK);
-//    }
-
-//    public async Task<BaseMessage<Libro>> UpdateLibro(Libro libro)
-//    {
-//        var isValid = ValidateModel(libro);
-//        if (!string.IsNullOrEmpty(isValid))
-//        {
-//            return BuildResponse(null, isValid, HttpStatusCode.BadRequest);
-//        }
-
-//        try
-//        {
-//            await _unitOfWork.LibroRepository.Update(libro);
-//            await _unitOfWork.SaveAsync();
-//        }
-//        catch (Exception ex)
-//        {
-//            return new BaseMessage<Libro>()
-//            {
-//                Message = $"[Exception]: {ex.Message}",
-//                StatusCode = HttpStatusCode.InternalServerError,
-//                ResponseElements = new()
-//            };
-//        }
-
-//        return BuildResponse(new List<Libro> { libro }, "", HttpStatusCode.OK);
-//    }
-
-//    public async Task<BaseMessage<Libro>> FindById(int id)
-//    {
-//        try
-//        {
-//            Libro? libro = await _unitOfWork.LibroRepository.FindAsync(id);
-//            return libro != null ? BuildResponse(new List<Libro> { libro }, "", HttpStatusCode.OK) :
-//                                   BuildResponse(new List<Libro>(), "", HttpStatusCode.NotFound);
-//        }
-//        catch (Exception ex)
-//        {
-//            return new BaseMessage<Libro>()
-//            {
-//                Message = $"[Exception]: {ex.Message}",
-//                StatusCode = HttpStatusCode.InternalServerError,
-//                ResponseElements = new()
-//            };
-//        }
-//    }
-
-//    private string ValidateModel(Libro libro)
-//    {
-//        string message = string.Empty;
-
-//        if (string.IsNullOrEmpty(libro.Titulo))
-//        {
-//            message += "El t�tulo es requerido. ";
-//        }
-
-//        if (string.IsNullOrEmpty(libro.ISBN13) || !Regex.IsMatch(libro.ISBN13, "^\\d{10}|\\d{13}$"))
-//        {
-//            message += "El ISBN debe tener 10 o 13 caracteres num�ricos. ";
-//        }
-
-//        if (libro.AnioPublicacion < 1450 || libro.AnioPublicacion > 2026)
-//        {
-//            message += "El a�o de publicaci�n debe estar entre 1450 y 2026. ";
-//        }
-
-//        if (string.IsNullOrEmpty(libro.Editorial))
-//        {
-//            message += "La editorial es requerida. ";
-//        }
-
-//        return message;
-//    }
-
-//    private BaseMessage<Libro> BuildResponse(List<Libro> lista, string message = "", HttpStatusCode status = HttpStatusCode.OK)
-//    {
-//        return new BaseMessage<Libro>()
-//        {
-//            Message = message,
-//            StatusCode = status,
-//            ResponseElements = lista
-//        };
-//    }
-//}
-
-
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Linq;
@@ -149,18 +8,20 @@ public class LibroService : ILibroService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEstadisticaService _estadisticaService;
+    private readonly IFileService _fileService;
 
-    public LibroService(IUnitOfWork unitOfWork,IEstadisticaService estadisticaService)
+    public LibroService(IUnitOfWork unitOfWork,IEstadisticaService estadisticaService,IFileService fileService)
     {
         _unitOfWork = unitOfWork;
         _estadisticaService = estadisticaService;
+        _fileService = fileService;
     }
 
     public async Task<BaseMessage<Libro>> GetAll()
     {
         try
         {                                                                               // se añade activo para habilitar o inabi libros
-            IEnumerable<Libro> libros = await _unitOfWork.LibroRepository.GetAllAsync(l => l.Activo);
+            IEnumerable<Libro> libros = await _unitOfWork.LibroRepository.GetAllAsync(l => (bool)l.Activo);
             return libros.Any() ? BuildResponse(libros.ToList(), "", HttpStatusCode.OK) :
                                   BuildResponse(libros.ToList(), "", HttpStatusCode.NotFound);
         }
@@ -175,7 +36,7 @@ public class LibroService : ILibroService
         }
     }
 
-    public async Task<BaseMessage<Libro>> AddLibro(Libro libro)
+    public async Task<BaseMessage<Libro>> AddLibro(RequestLibroAddDTO libro)
     {
         var isValid = ValidateModel(libro);
         if (!string.IsNullOrEmpty(isValid))
@@ -183,12 +44,46 @@ public class LibroService : ILibroService
             return BuildResponse(null, isValid, HttpStatusCode.BadRequest);
         }
 
+
+        Libro? libroSave = null;
+
         try
         {
-            await _unitOfWork.LibroRepository.AddAsync(libro);
+
+           var autor = await _unitOfWork.AutorRepository.FindAsync(libro.AutorId);
+
+            if(autor == null){
+                return this.BuildResponse(null, "Autor no valido", HttpStatusCode.BadRequest);
+            }
+
+            var resultFile = _fileService.SaveFileLibroBase64(libro.Base64File);
+
+            if(resultFile == null){
+                return this.BuildResponse(null, "Archvio no procesado", HttpStatusCode.BadRequest);
+            }
+
+            libroSave = new(){
+                Titulo = libro.Titulo,
+                ISBN13 = libro.ISBN13,
+                Editorial = libro.Editorial,
+                AnioPublicacion = libro.AnioPublicacion, 
+                Formato  = libro.Formato,
+                Genero  = libro.Genero,
+                Idioma  = libro.Idioma,
+                Portada  = libro.Portada,
+                Edicion = libro.Edicion,
+                Activo    = libro.Activo,
+                ContraPortada = libro.ContraPortada, 
+                AutorId  = libro.AutorId,
+                Path = resultFile.Path,
+                Autor = autor, 
+            };
+
+            await _unitOfWork.LibroRepository.AddAsync(libroSave);
             await _unitOfWork.SaveAsync();
 
-            await SaveEstadisticaAsync(libro.Id);
+            //Crea el registro de estadistica
+            await SaveEstadisticaAsync(libroSave.Id);
         }
         catch (Exception ex)
         {
@@ -200,10 +95,10 @@ public class LibroService : ILibroService
             };
         }
 
-        return BuildResponse(new List<Libro> { libro }, "", HttpStatusCode.OK);
+        return BuildResponse(new List<Libro> { libroSave }, "", HttpStatusCode.OK);
     }
 
-    public async Task<BaseMessage<Libro>> UpdateLibro(Libro libro)
+    public async Task<BaseMessage<Libro>> UpdateLibro(RequestLibroAddDTO libro)
     {
         var isValid = ValidateModel(libro);
         if (!string.IsNullOrEmpty(isValid))
@@ -211,9 +106,53 @@ public class LibroService : ILibroService
             return BuildResponse(null, isValid, HttpStatusCode.BadRequest);
         }
 
+        Libro? libroUpdate = null;
+
         try
         {
-            await _unitOfWork.LibroRepository.Update(libro);
+             var libroibroBD = await _unitOfWork.LibroRepository.FindAsync(x => x.Id == libro.Id);
+
+            if(libroibroBD == null){
+                return this.BuildResponse(null, "libro no encontrado", HttpStatusCode.BadRequest);
+            }
+
+            var autor = await _unitOfWork.AutorRepository.FindAsync(libro.AutorId);
+
+            if(autor == null){
+                return this.BuildResponse(null, "Autor no valido", HttpStatusCode.BadRequest);
+            }
+
+            var resultFile = _fileService.SaveFileLibroBase64(libro.Base64File);
+
+            if(resultFile == null){
+                return this.BuildResponse(null, "Archvio no procesado", HttpStatusCode.BadRequest);
+            }
+
+            var resultDeleteFile = _fileService.DeleteFile(libroibroBD.Path);
+
+            if(!resultDeleteFile){
+                return this.BuildResponse(null, "Error actualizando libro", HttpStatusCode.BadRequest);
+            }
+
+            libroUpdate = new(){
+                Id = libro.Id,
+                Titulo = libro.Titulo,
+                ISBN13 = libro.ISBN13,
+                Editorial = libro.Editorial,
+                AnioPublicacion = libro.AnioPublicacion, 
+                Formato  = libro.Formato,
+                Genero  = libro.Genero,
+                Idioma  = libro.Idioma,
+                Portada  = libro.Portada,
+                Edicion = libro.Edicion,
+                Activo    = libro.Activo,
+                ContraPortada = libro.ContraPortada, 
+                AutorId  = libro.AutorId,
+                Autor = autor, 
+                Path = resultFile.Path,
+            };
+
+            await _unitOfWork.LibroRepository.Update(libroUpdate);
             await _unitOfWork.SaveAsync();
         }
         catch (Exception ex)
@@ -226,7 +165,7 @@ public class LibroService : ILibroService
             };
         }
 
-        return BuildResponse(new List<Libro> { libro }, "", HttpStatusCode.OK);
+        return BuildResponse(new List<Libro> { libroUpdate }, "", HttpStatusCode.OK);
     }
 
     public async Task<BaseMessage<Libro>> FindById(int id)
@@ -428,7 +367,7 @@ public async Task<BaseMessage<Libro>> EliminarLibro(int id)
         try
         {
             var libros = await _unitOfWork.LibroRepository.GetAllAsync(
-                l => l.Activo && (string.IsNullOrEmpty(requestFilterLibroDTO.Nombre) || l.Titulo.Contains(requestFilterLibroDTO.Nombre)) &&
+                l => (bool)l.Activo && (string.IsNullOrEmpty(requestFilterLibroDTO.Nombre) || l.Titulo.Contains(requestFilterLibroDTO.Nombre)) &&
                      (requestFilterLibroDTO.AutorId == 0 || l.AutorId == requestFilterLibroDTO.AutorId) &&
                      (string.IsNullOrEmpty(requestFilterLibroDTO.Genero) || l.Genero == requestFilterLibroDTO.Genero) &&
                      (string.IsNullOrEmpty(requestFilterLibroDTO.Idioma) || l.Idioma == requestFilterLibroDTO.Idioma) &&
@@ -451,7 +390,7 @@ public async Task<BaseMessage<Libro>> EliminarLibro(int id)
         }
     }
 
-    private string ValidateModel(Libro libro)
+    private string ValidateModel(RequestLibroAddDTO libro)
     {
         string message = string.Empty;
 

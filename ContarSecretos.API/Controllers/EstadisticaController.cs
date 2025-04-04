@@ -79,7 +79,7 @@ public class EstadisticaController : ControllerBase {
 
 
 
-     [HttpPost]
+    [HttpPost]
     [Route("DescargoLibro")]
     public async Task<IActionResult> DescargoLibro([FromQuery] int idLibro){
         
@@ -93,26 +93,6 @@ public class EstadisticaController : ControllerBase {
         Estadistica estadistica = estadisticaBD.ResponseElements.First();
 
         estadistica.CountDescargas = estadistica.CountDescargas + 1;
-
-        var response = await _estadisticaService.UpdateEstadistica(estadistica);
-
-        return Ok(response);
-    }
-
-    [HttpPost]
-    [Route("EscuchoLibro")]
-    public async Task<IActionResult> EscuchoLibro([FromQuery] int idLibro){
-        
-        var estadisticaBD = await _estadisticaService.GetEstadistica(null,idLibro);
-
-        if(estadisticaBD == null || estadisticaBD.ResponseElements.Count == 0)
-        {
-            return NotFound();
-        }
-
-        Estadistica estadistica = estadisticaBD.ResponseElements.First();
-
-        estadistica.CountEscuchado = estadistica.CountEscuchado + 1;
 
         var response = await _estadisticaService.UpdateEstadistica(estadistica);
 
