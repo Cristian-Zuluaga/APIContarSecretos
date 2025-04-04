@@ -29,6 +29,8 @@ public interface ILibroService
     Task<BaseMessage<byte[]>> DownloadLibro(int id);
     Task<BaseMessage<Libro>> DesactivarLibro(int id);
     Task<BaseMessage<Libro>> ActivarLibro(int id);  
+    ///ELIMINAR LIBRO
+    Task<BaseMessage<Libro>> EliminarLibro(int id);
 
 
 
