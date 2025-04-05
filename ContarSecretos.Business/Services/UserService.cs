@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -17,8 +18,21 @@ public class UserService : IUserService
         _roleManager = roleManager;
         _configuration = configuration;
     }
-    
-    
+
+    public List<ApplicationUser> GetAllUsers()
+    {
+        try
+        {
+            var users = _userManager.Users.ToList();
+            return users;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener los usuarios: {ex.Message}");
+            return new List<ApplicationUser>();
+        }
+    }
+
     public async Task<TokenResponse> Login(LoginModel loginModel)
     {
         var user = await _userManager.FindByNameAsync(loginModel.UserName);
@@ -54,16 +68,15 @@ public class UserService : IUserService
         return new TokenResponse();
     }
 
-    public async Task<bool> RegisterAdmin(RegisterModel userModel)
+    public async Task<bool> RegisterUser(RegisterUserDTO userModel)
     {
-        try{
+        try
+        {
             var userExist = await _userManager.FindByNameAsync(userModel.UserName);
-            if(userExist != null)
-            {
+            if (userExist != null)
                 return false;
-            }
 
-            ApplicationUser user = new ApplicationUser()
+            var user = new ApplicationUser
             {
                 Email = userModel.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
@@ -71,44 +84,81 @@ public class UserService : IUserService
             };
 
             var result = await _userManager.CreateAsync(user, userModel.Password);
-            if(!result.Succeeded)
-            {
+            if (!result.Succeeded)
                 return false;
-            }
 
-            if(!await _roleManager.RoleExistsAsync(UserRoles.Admin))
-            {
+            // Asegurar que los roles existen
+            if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
-            }
-            
-            if(!await _roleManager.RoleExistsAsync(UserRoles.User))
-            {
+
+            if (!await _roleManager.RoleExistsAsync(UserRoles.User))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
-            }
 
-            if(await _roleManager.RoleExistsAsync(UserRoles.Admin))
-            {
-                await _userManager.AddToRoleAsync(user, UserRoles.Admin);
-            }
+            // Asignar el rol según el parámetro
+            var role = userModel.IsAdmin ? UserRoles.Admin : UserRoles.User;
+            await _userManager.AddToRoleAsync(user, role);
+
             return true;
-        }catch(Exception ex){
-            Console.WriteLine(ex.ToString());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al registrar usuario: {ex.Message}");
             return false;
-        }      
-
+        }
     }
 
-    public Task<bool> RegisterUser(RegisterModel userModel)
+    public async Task<bool> ResetPasswordUser(ResetPasswordDTO resetPasswordDTO)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.emailOrUserName) ??
+                    await _userManager.FindByNameAsync(resetPasswordDTO.emailOrUserName);
+
+            if (user == null)
+                return false;
+
+            // Generar token de reseteo
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // Resetear contraseña con la proporcionada
+            var result = await _userManager.ResetPasswordAsync(user, resetToken, resetPasswordDTO.newPassword);
+
+            return result.Succeeded;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al reiniciar clave: {ex.Message}");
+            return false;
+        }
     }
 
     public async Task SeedAdmin()
     {
-        await RegisterAdmin(new RegisterModel(){
-            Email = "useradmin@gmail.com",
+        await RegisterUser(new RegisterUserDTO(){
+            Email = "userCristian@gmail.com",
             Password = "Clave123*",
-            UserName = "useradmin"
+            UserName = "CristianZuluaga",
+            IsAdmin = true
         });
+    }
+
+    public async Task<bool> UpdateStatusUser(RequestUpdateStatusUserDTO requestUpdateStatusUserDTO)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(requestUpdateStatusUserDTO.IdUser);
+            if (user == null)
+                return false;
+
+            user.IsActive = requestUpdateStatusUserDTO.IsActive;
+            var result = await _userManager.UpdateAsync(user);
+
+            return result.Succeeded;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al inactivar usuario: {ex.Message}");
+            return false;
+        }
     }
 }

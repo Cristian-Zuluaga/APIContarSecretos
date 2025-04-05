@@ -340,6 +340,9 @@ public async Task<BaseMessage<Libro>> EliminarLibro(int id)
             };
         }
 
+        //Elimina estadistica
+        await DeleteEstadisticaAsync(id);
+
         await _unitOfWork.LibroRepository.Delete(libro);
         await _unitOfWork.SaveAsync();
 

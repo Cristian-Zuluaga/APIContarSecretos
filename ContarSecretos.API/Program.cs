@@ -46,7 +46,6 @@ builder.Services.AddAuthentication(options =>{
 });
 
 
-
 //Inyeccion de contexto - conexion sql
 builder.Services.AddDbContext<SecretosContext>(
     opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("SecretosBD"))
